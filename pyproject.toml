@@ -1,0 +1,74 @@
+[project]
+name = "openduck-sim"
+version = "0.1.0"
+description = "Open Duck Mini v2 시뮬레이터 앱"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "mujoco>=3.11",
+    "dearpygui>=2.3",
+    # 온보드 SW 가 걷기 정책을 돌린다. 온보드는 설치하지 않고 경로로 붙이므로
+    # 그 의존성은 이쪽이 깐다.
+    "onnxruntime>=1.20.1",
+    # 온보드 SW 전사(streaming-zipformer)의 특징 추출.
+    "kaldi-native-fbank>=1.20",
+    # 전사. 모델은 처음 쓸 때 받는다(small 약 460 MB).
+    "openai-whisper>=20240930",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+# 온보드 SW 가 감정을 돌린다. 온보드는 설치하지 않고 경로로 붙이므로
+# 그 의존성은 이쪽이 깐다. 감정 인식(감정팀 엔진과 얼굴 정렬)에만 쓴다.
+# 없어도 온보드 SW 는 서고 감정만 돌지 않는다. torch 는 whisper 가 이미 끈다.
+# mediapipe 1.0.1 은 얼굴 검출기를 여는 순간 죽어 1.0.0 으로 묶는다(Runtime research/07 5장).
+emotion = [
+    # emotiefflib 가 torchvision import 실패를 삼키고 나중에 mobilefacenet 을
+    # 못 찾아 죽는다. 직접 적는다.
+    "torchvision>=0.17",
+    "transformers>=4.40",
+    "emotiefflib>=1.1.1",
+    "librosa>=0.10",
+    "soundfile>=0.12",
+    "pyyaml>=6.0",
+    "opencv-python-headless>=4.9",
+    "mediapipe==1.0.0",
+    # em7 모델 코드(finetune4.py)가 학습용 import 를 모듈 맨 위에 둔다.
+    "pandas>=2.2",
+    "scikit-learn>=1.4",
+    "pillow>=10.0",
+]
+# 데모와 감정 표현 검증에 쓴다. 기본 설치에 넣지 아니한다 -- 앱의 추종 모드와
+# 시험은 이것들 없이 돌아야 한다.
+#
+# opencv 는 카메라를 여는 데도 쓰고 받아 둔 얼굴 프레임(jpg)을 읽는 데도 쓴다.
+# sounddevice 는 마이크다. TTS 는 macOS 내장 `say` 라 여기 없다.
+demo = [
+    "opencv-python-headless>=4.9",
+    "sounddevice>=0.4",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# 설치하지 아니한다. 경로로 잡는다.
+[tool.setuptools]
+py-modules = []
+
+# 온보드 SW 는 설치하지 않고 경로로 붙인다. 고정 의존성으로 박으면
+# 구현을 갈아끼울 수 없고, 설치하면 최상위 이름이 이쪽 import 목록에
+# 올라온다. 두 저장소는 나란히 놓인다.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "../AIRookie_Runtime/src"]
+
+# 실장치(마이크·카메라·`say`)가 필요한 시험이다. **기본에서 뺀다** -- 장치가
+# 없는 기계에서 기본 시험이 빨갛게 되면 무엇이 진짜 고장인지 가릴 수 없다.
+#
+#     uv run pytest              기본. 장치를 안 건드린다
+#     uv run pytest -m device    실장치. 권한 창이 뜰 수 있다
+markers = ["device: 마이크·카메라·TTS 같은 실장치가 있어야 도는 시험"]
+addopts = "-m 'not device'"

@@ -75,4 +75,4 @@ uv run --no-project --with ultralytics --with onnx --with onnxslim python tools/
 
 ## 라이선스
 
-아직 오픈소스 라이선스를 정하지 않았다. 모든 권리를 보유한다.
+[MIT License](LICENSE) 를 따른다.

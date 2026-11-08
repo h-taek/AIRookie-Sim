@@ -75,4 +75,4 @@ The person mesh and emotion clips are not in this repository. Prepare the mesh w
 
 ## License
 
-No open-source license has been chosen yet; all rights reserved.
+Released under the [MIT License](LICENSE).
